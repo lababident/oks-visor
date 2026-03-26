@@ -37,6 +37,8 @@ else:
 
     if os.path.exists(archivo_rutas):
         df = pd.read_excel(archivo_rutas)
+        # Limpieza de nombres de columnas
+        df.columns = df.columns.str.strip()
         df['Codigo_Cliente'] = df['Codigo_Cliente'].astype(str).str.replace('.0', '', regex=False).str.strip()
         
         st.title("🗺️ Panel de Supervisión OKS - Global")
@@ -56,7 +58,7 @@ else:
                     coord = [row['Latitud'], row['Longitud']]
                     color_pin = COLORES_DIAS.get(row['Dia'], 'blue')
                     
-                    # --- VENTANA FLOTANTE CON LAS NUEVAS COLUMNAS ---
+                    # --- POPUP CON LOS NOMBRES DE COLUMNA EXACTOS ---
                     html_popup = f"""
                     <div style="font-family: Arial, sans-serif; min-width: 200px; font-size: 12px;">
                         <h4 style="margin: 0 0 5px 0; color: #d32f2f;">{row['Cliente']}</h4>
@@ -64,9 +66,9 @@ else:
                             <tr><td><b>Código:</b></td><td>{row['Codigo_Cliente']}</td></tr>
                             <tr><td><b>Vendedor:</b></td><td>{row['Vendedor']}</td></tr>
                             <tr><td><b>Día:</b></td><td>{row['Dia']}</td></tr>
-                            <tr><td><b>Pago:</b></td><td>{row.get('Forma de Pago', 'N/A')}</td></tr>
-                            <tr><td><b>Vend. Ant:</b></td><td>{row.get('Vendedor Anterior', 'N/A')}</td></tr>
-                            <tr><td><b>Canal:</b></td><td>{row.get('Canal', 'N/A')}</td></tr>
+                            <tr><td><b>Pago:</b></td><td>{row.get('Forma_de_Pago', 'No cargado')}</td></tr>
+                            <tr><td><b>Vend. Ant:</b></td><td>{row.get('Vendedor_Anterior', 'No cargado')}</td></tr>
+                            <tr><td><b>Canal:</b></td><td>{row.get('Canal', 'No cargado')}</td></tr>
                             <tr><td><br><b>Dirección:</b><br>{row['Direccion_Completa']}</td></tr>
                         </table>
                     </div>
@@ -92,10 +94,10 @@ else:
             else:
                 st.warning("No se encontraron registros.")
         else:
-            st.info("👈 Selecciona Vendedor y Día.")
+            st.info("👈 Selecciona Vendedor y Día en el menú lateral.")
             
         if st.sidebar.button("Cerrar Sesión"):
             st.session_state['logueado'] = False
             st.rerun()
     else:
-        st.error("Archivo no encontrado.")
+        st.error("Archivo 'rutas_optimizadas.xlsx' no encontrado.")
