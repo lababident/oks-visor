@@ -1,6 +1,7 @@
 pandas
 openpyxl
 folium
-streamlit
-streamlit-folium
+streamlit>=1.31.0
+streamlit-folium>=0.17.0
 geopy
+altair<5.0.0
