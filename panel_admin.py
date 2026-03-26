@@ -37,11 +37,11 @@ else:
 
     if os.path.exists(archivo_rutas):
         df = pd.read_excel(archivo_rutas)
-        # Limpieza de nombres de columnas
+        # Limpieza de nombres de columnas por seguridad
         df.columns = df.columns.str.strip()
         df['Codigo_Cliente'] = df['Codigo_Cliente'].astype(str).str.replace('.0', '', regex=False).str.strip()
         
-        st.title("🗺️ Panel de Supervisión OKS - Global")
+        st.title("🗺️ Panel de Supervisión OKS - Perfil Comercial")
         
         st.sidebar.header("Filtros de Búsqueda")
         vendedores_sel = st.sidebar.multiselect("Seleccionar Vendedores:", sorted(df['Vendedor'].unique().tolist()))
@@ -58,26 +58,36 @@ else:
                     coord = [row['Latitud'], row['Longitud']]
                     color_pin = COLORES_DIAS.get(row['Dia'], 'blue')
                     
-                    # --- POPUP CON LOS NOMBRES DE COLUMNA EXACTOS ---
+                    # --- POPUP MEJORADO CON TODA LA INFO COMERCIAL ---
                     html_popup = f"""
-                    <div style="font-family: Arial, sans-serif; min-width: 200px; font-size: 12px;">
+                    <div style="font-family: Arial, sans-serif; min-width: 250px; font-size: 12px;">
                         <h4 style="margin: 0 0 5px 0; color: #d32f2f;">{row['Cliente']}</h4>
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr><td><b>Código:</b></td><td>{row['Codigo_Cliente']}</td></tr>
                             <tr><td><b>Vendedor:</b></td><td>{row['Vendedor']}</td></tr>
+                            <tr><td><b>Supervisor:</b></td><td>{row.get('Supervisor', 'N/A')}</td></tr>
                             <tr><td><b>Día:</b></td><td>{row['Dia']}</td></tr>
-                            <tr><td><b>Pago:</b></td><td>{row.get('Forma_de_Pago', 'No cargado')}</td></tr>
-                            <tr><td><b>Vend. Ant:</b></td><td>{row.get('Vendedor_Anterior', 'No cargado')}</td></tr>
-                            <tr><td><b>Canal:</b></td><td>{row.get('Canal', 'No cargado')}</td></tr>
-                            <tr><td><br><b>Dirección:</b><br>{row['Direccion_Completa']}</td></tr>
+                            
+                            <tr><td colspan="2"><hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;"></td></tr>
+                            
+                            <tr><td><b>Canal:</b></td><td>{row.get('Canal', 'N/A')}</td></tr>
+                            <tr><td><b>Frec. Trim:</b></td><td>{row.get('Frecuencia_Trismestral', 'N/A')}</td></tr>
+                            <tr><td><b>PDV Compra:</b></td><td>{row.get('PDV_COMPRA', 'N/A')}</td></tr>
+                            <tr><td><b>Prom. 3 Meses:</b></td><td>{row.get('Promedio_3Meses', 'N/A')}</td></tr>
+                            <tr><td><b>Pago:</b></td><td>{row.get('Forma_de_Pago', 'N/A')}</td></tr>
+                            <tr><td><b>Vend. Ant:</b></td><td>{row.get('Vendedor_Anterior', 'N/A')}</td></tr>
+                            
+                            <tr><td colspan="2"><hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;"></td></tr>
+                            
+                            <tr><td colspan="2"><b>Dirección:</b><br>{row['Direccion_Completa']}</td></tr>
                         </table>
                     </div>
                     """
                     
                     folium.Marker(
                         location=coord,
-                        popup=folium.Popup(html_popup, max_width=300),
-                        tooltip=f"Ver detalles: {row['Cliente']}",
+                        popup=folium.Popup(html_popup, max_width=350), # Lo hicimos un poco más ancho para que quepa todo
+                        tooltip=f"Perfil: {row['Cliente']}",
                         icon=folium.Icon(color=color_pin, icon='info-sign')
                     ).add_to(m)
 
@@ -86,7 +96,7 @@ else:
                         icon=folium.DivIcon(
                             icon_size=(150,36),
                             icon_anchor=(7, 18),
-                            html=f"""<div style="font-family: 'Arial Black'; color: #000; font-size: 10pt; font-weight: 900; text-shadow: 1px 1px 0 #FFF, -1px -1px 0 #FFF;">{row['Codigo_Cliente']}</div>"""
+                            html=f"""<div style="font-family: 'Arial Black'; color: #000; font-size: 10pt; font-weight: 900; text-shadow: 1px 1px 0 #FFF, -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF;">{row['Codigo_Cliente']}</div>"""
                         )
                     ).add_to(m)
                 
