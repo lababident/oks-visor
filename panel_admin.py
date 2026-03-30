@@ -30,11 +30,6 @@ else:
     st.set_page_config(page_title="OKS - Visor Global", layout="wide")
     archivo_rutas = 'rutas_optimizadas.xlsx' 
 
-    COLORES_DIAS = {
-        'Lunes': 'red', 'Martes': 'blue', 'Miercoles': 'green',
-        'Jueves': 'orange', 'Viernes': 'purple', 'Sabado': 'black', 'Domingo': 'gray'
-    }
-
     if os.path.exists(archivo_rutas):
         df = pd.read_excel(archivo_rutas)
         # Limpieza de nombres de columnas por seguridad
@@ -56,8 +51,36 @@ else:
 
                 for _, row in df_f.iterrows():
                     coord = [row['Latitud'], row['Longitud']]
-                    color_pin = COLORES_DIAS.get(row['Dia'], 'blue')
                     
+                    # --- LÓGICA DE COLORES POR DÍA Y COMPRA ---
+                    promedio = row.get('Promedio_3Meses', 'NA')
+                    
+                    # Determinamos si tiene compra (si no es NA, N/A o nulo)
+                    tiene_compra = True
+                    if pd.isna(promedio) or str(promedio).strip().upper() in ['NA', 'N/A', '', 'NAN']:
+                        tiene_compra = False
+
+                    # Asignación de colores según la librería de Folium
+                    if row['Dia'] == 'Lunes':
+                        color_pin = 'darkred' if tiene_compra else 'red'
+                    elif row['Dia'] == 'Martes':
+                        color_pin = 'darkblue' if tiene_compra else 'lightblue'
+                    elif row['Dia'] == 'Miercoles':
+                        color_pin = 'darkgreen' if tiene_compra else 'lightgreen'
+                    elif row['Dia'] == 'Jueves':
+                        # --- MODIFICACIÓN SOLICITADA PARA EL JUEVES ---
+                        color_pin = 'brown' if tiene_compra else 'orange' 
+                        # ---------------------------------------------
+                    elif row['Dia'] == 'Viernes':
+                        color_pin = 'darkpurple' if tiene_compra else 'purple' # 'purple' actúa como lila
+                    else:
+                        color_pin = 'black' # Fallback para Sábado/Domingo
+                    
+                    # Validación para no mostrar "NA" en el Vendedor Anterior
+                    vend_ant = row.get('Vendedor_Anterior', '')
+                    if pd.isna(vend_ant) or str(vend_ant).strip().upper() in ['NA', 'N/A', 'NAN']:
+                        vend_ant = '' 
+                        
                     # --- POPUP MEJORADO CON TODA LA INFO COMERCIAL ---
                     html_popup = f"""
                     <div style="font-family: Arial, sans-serif; min-width: 250px; font-size: 12px;">
@@ -75,7 +98,7 @@ else:
                             <tr><td><b>PDV Compra:</b></td><td>{row.get('PDV_COMPRA', 'N/A')}</td></tr>
                             <tr><td><b>Prom. 3 Meses:</b></td><td>{row.get('Promedio_3Meses', 'N/A')}</td></tr>
                             <tr><td><b>Pago:</b></td><td>{row.get('Forma_de_Pago', 'N/A')}</td></tr>
-                            <tr><td><b>Vend. Ant:</b></td><td>{row.get('Vendedor_Anterior', 'N/A')}</td></tr>
+                            <tr><td><b>Vend. Ant:</b></td><td>{vend_ant}</td></tr>
                             
                             <tr><td colspan="2"><hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;"></td></tr>
                             
@@ -86,7 +109,7 @@ else:
                     
                     folium.Marker(
                         location=coord,
-                        popup=folium.Popup(html_popup, max_width=350), # Lo hicimos un poco más ancho para que quepa todo
+                        popup=folium.Popup(html_popup, max_width=350), 
                         tooltip=f"Perfil: {row['Cliente']}",
                         icon=folium.Icon(color=color_pin, icon='info-sign')
                     ).add_to(m)
